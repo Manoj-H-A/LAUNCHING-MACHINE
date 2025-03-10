@@ -1,0 +1,149 @@
+#include "BluetoothSerial.h"
+#include<ESP32Servo.h>
+Servo a;
+BluetoothSerial serialBT;
+char cmd;
+const int motorBaseENA = 15;   
+const int motorBaseIN1 = 22;    //18
+const int motorBaseIN2 = 18;    //19
+const int motorElevIN3 = 19;    //21
+const int motorElevIN4 = 21;    //22
+const int motorElevENB = 23;
+const int motorlaunchIN1 = 13;
+const int motorlaunchIN2 = 12;
+const int ledPin = 4;
+
+void setup() {
+  // put your setup code here, to run once:
+   serialBT.begin("ESP-32-launcher");
+
+   pinMode(motorBaseENA, OUTPUT);
+  pinMode(motorBaseIN1, OUTPUT);
+  pinMode(motorBaseIN2, OUTPUT);
+  pinMode(motorElevIN3, OUTPUT);
+  pinMode(motorElevIN4, OUTPUT);
+  pinMode(motorElevENB, OUTPUT);
+  pinMode(motorlaunchIN1, OUTPUT);
+  pinMode(motorlaunchIN2, OUTPUT);
+
+  pinMode(2,OUTPUT);
+  pinMode(4,OUTPUT);
+  
+   pinMode(ledPin, OUTPUT);
+   a.attach(5);
+   
+}
+
+void loop() {
+  // put your main code here, to run repeatedly:
+    if(serialBT.available())
+    {
+     cmd = serialBT.read();
+    }
+    //servo motor
+     if (cmd=='F') //launch missile(servo)
+    { 
+
+        a.write(90);
+        delay(2000);
+       
+        a.write(0);
+        delay(1000);
+
+        digitalWrite(2,HIGH);
+        delay(4000);
+        digitalWrite(2,LOW);
+        delay(1000);
+        
+       
+        
+    }
+    if (cmd=='H') //lock servo
+    { 
+
+        a.write(90);
+        delay(1000);
+        digitalWrite(4,HIGH);
+        delay(3000);
+        digitalWrite(4,LOW);
+      
+       
+        
+    }
+  
+     
+    
+    //Base rotation control  OUT1 AND OUT2 OF L298N
+    if(cmd == 'C')  //rotate 360 base clockwise  
+    {
+      digitalWrite(motorElevIN3, HIGH);
+      digitalWrite(motorBaseIN2, LOW);
+      
+    }
+    else if(cmd == 'D')     //rotate 360 base anticlockwise  
+    {
+      digitalWrite(motorElevIN3, LOW);
+      digitalWrite(motorBaseIN2, HIGH);
+    
+    }
+    else if(cmd== 'Z')    // stop the rotation
+    {
+      digitalWrite(motorElevIN3, LOW);
+      digitalWrite(motorBaseIN2, LOW);
+     
+    }
+    //Rocket angle control  OUT3 AND OUT4
+    if(cmd == 'A')     //lift up the launching unit
+    {
+      digitalWrite(motorBaseIN1, LOW);
+      digitalWrite(motorElevIN4, HIGH);
+      
+    }
+   
+    else if(cmd == 'B')     //bring down the launching unit
+    {
+      
+      digitalWrite(motorBaseIN1, HIGH);
+      digitalWrite(motorElevIN4, LOW);
+
+      
+    }
+    
+    else if(cmd == 'Z')    // stop the lifting
+    {
+      digitalWrite(motorBaseIN1, LOW);
+      digitalWrite(motorElevIN4, LOW);
+      
+    }
+    
+
+
+    // rack and pinion control
+    if(cmd == 'E')     // pull back the rack using pinion
+    {
+      digitalWrite(motorlaunchIN1, LOW);
+      digitalWrite(motorlaunchIN2, HIGH);
+   
+      
+      
+    }
+    
+    else if(cmd == 'G')    // pull forward the rack using pinion
+    {
+      
+      digitalWrite(motorlaunchIN1, HIGH);
+      digitalWrite(motorlaunchIN2, LOW);
+      
+      
+    }
+    
+    else if(cmd == 'Z')    // stop the rack and pinion process
+    {
+      digitalWrite(motorlaunchIN1, LOW);
+      digitalWrite(motorlaunchIN2, LOW);
+      
+    }
+    
+
+    
+}
